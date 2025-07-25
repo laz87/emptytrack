@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#667eea">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Empties Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 100px 150px 120px;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-export {
+            background: #17a2b8;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .btn-export:hover {
+            background: #138496;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .table-section {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .table-header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-box {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            width: 250px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍺 Customer Empties Tracker</h1>
+            <p>Track unreturned kegs and manage customer debt</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('active')">Currently Owed</button>
+                <button class="tab" onclick="switchTab('add')">Add New Entry</button>
+                <button class="tab" onclick="switchTab('history')">Cleared History</button>
+            </div>
+
+            <div class="alert success" id="alert"></div>
+
+            <!-- Active Debtors Tab -->
+            <div id="active-tab" class="tab-content active">
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3 id="total-customers">0</h3>
+                        <p>Customers Owing</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="total-empties">0</h3>
+                        <p>Total Empties Owed</p>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3>Currently Unreturned Empties</h3>
+                        <div>
+                            <button class="btn btn-export" onclick="exportToCSV('active')">Export CSV</button>
+                            <input type="text" class="search-box" id="search-active" placeholder="Search customers..." onkeyup="filterTable('active-table', this.value)">
+                        </div>
+                    </div>
+                    <div id="active-table-container">
+                        <table id="active-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('active-table', 0)">Customer ↕</th>
+                                    <th onclick="sortTable('active-table', 1)">Qty ↕</th>
+                                    <th onclick="sortTable('active-table', 2)">Date Owed ↕</th>
+                                    <th>Days Overdue</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="empty-state" id="active-empty" style="display: none;">
+                            <h3>🎉 No Unreturned Empties!</h3>
+                            <p>All customers have returned their kegs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Entry Tab -->
+            <div id="add-tab" class="tab-content">
+                <div class="form-section">
+                    <h3 style="margin-bottom: 20px; color: #2c3e50;">Add Unreturned Empties</h3>
+                    <form id="add-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customer-name">Customer Name</label>
+                                <input type="text" id="customer-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qty-owed">Quantity</label>
+                                <input type="number" id="qty-owed" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date-owed">Date Owed</label>
+                                <input type="date" id="date-owed" required>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Add Entry</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-content">
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3>Cleared Empties History</h3>
+                        <div>
+                            <button class="btn btn-export" onclick="exportToCSV('history')">Export CSV</button>
+                            <input type="text" class="search-box" id="search-history" placeholder="Search customers..." onkeyup="filterTable('history-table', this.value)">
+                        </div>
+                    </div>
+                    <div id="history-table-container">
+                        <table id="history-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('history-table', 0)">Customer ↕</th>
+                                    <th onclick="sortTable('history-table', 1)">Qty ↕</th>
+                                    <th onclick="sortTable('history-table', 2)">Date Owed ↕</th>
+                                    <th onclick="sortTable('history-table', 3)">Date Cleared ↕</th>
+                                    <th>Days Taken</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="empty-state" id="history-empty" style="display: none;">
+                            <h3>📝 No History Yet</h3>
+                            <p>Cleared empties will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let emptiesData = JSON.parse(localStorage.getItem('emptiesData')) || [];
+        let nextId = parseInt(localStorage.getItem('nextId')) || 1;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            document.getElementById('date-owed').valueAsDate = new Date();
+            
+            // Load data
+            refreshActiveTable();
+            refreshHistoryTable();
+            updateStats();
+            
+            // Add form handler
+            document.getElementById('add-form').addEventListener('submit', addEntry);
+        });
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function addEntry(e) {
+            e.preventDefault();
+            
+            const customerName = document.getElementById('customer-name').value.trim();
+            const qtyOwed = parseInt(document.getElementById('qty-owed').value);
+            const dateOwed = document.getElementById('date-owed').value;
+            
+            if (!customerName || !qtyOwed || !dateOwed) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            const newEntry = {
+                id: nextId++,
+                customerName,
+                qtyOwed,
+                dateOwed,
+                cleared: false,
+                dateCleared: null
+            };
+            
+            emptiesData.push(newEntry);
+            saveData();
+            
+            // Reset form
+            document.getElementById('add-form').reset();
+            document.getElementById('date-owed').valueAsDate = new Date();
+            
+            // Refresh displays
+            refreshActiveTable();
+            updateStats();
+            
+            showAlert(`Added ${qtyOwed} unreturned empties for ${customerName}`, 'success');
+            
+            // Switch to active tab
+            switchTab('active');
+            document.querySelector('.tab').click();
+        }
+
+        function markAsReturned(id) {
+            const entry = emptiesData.find(e => e.id === id);
+            if (entry) {
+                entry.cleared = true;
+                entry.dateCleared = new Date().toISOString().split('T')[0];
+                saveData();
+                
+                refreshActiveTable();
+                refreshHistoryTable();
+                updateStats();
+                
+                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}`, 'success');
+            }
+        }
+
+        function refreshActiveTable() {
+            const activeEntries = emptiesData.filter(e => !e.cleared);
+            const tbody = document.querySelector('#active-table tbody');
+            const emptyState = document.getElementById('active-empty');
+            
+            if (activeEntries.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = activeEntries.map(entry => {
+                const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                return `
+                    <tr>
+                        <td><strong>${entry.customerName}</strong></td>
+                        <td><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
+                        <td>${formatDate(entry.dateOwed)}</td>
+                        <td><span style="color: ${daysPassed > 7 ? '#dc3545' : daysPassed > 3 ? '#ffc107' : '#28a745'}; font-weight: 600;">${daysPassed} days</span></td>
+                        <td><button class="btn btn-success" onclick="markAsReturned(${entry.id})">Mark Returned</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refreshHistoryTable() {
+            const clearedEntries = emptiesData.filter(e => e.cleared);
+            const tbody = document.querySelector('#history-table tbody');
+            const emptyState = document.getElementById('history-empty');
+            
+            if (clearedEntries.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            tbody.innerHTML = clearedEntries.map(entry => {
+                const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                return `
+                    <tr>
+                        <td><strong>${entry.customerName}</strong></td>
+                        <td><span style="background: #e8f5e8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
+                        <td>${formatDate(entry.dateOwed)}</td>
+                        <td>${formatDate(entry.dateCleared)}</td>
+                        <td><span style="color: ${daysTaken > 7 ? '#dc3545' : '#28a745'}; font-weight: 600;">${daysTaken} days</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const activeEntries = emptiesData.filter(e => !e.cleared);
+            const totalCustomers = activeEntries.length;
+            const totalEmpties = activeEntries.reduce((sum, entry) => sum + entry.qtyOwed, 0);
+            
+            document.getElementById('total-customers').textContent = totalCustomers;
+            document.getElementById('total-empties').textContent = totalEmpties;
+        }
+
+        function filterTable(tableId, searchTerm) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const customerName = row.cells[0].textContent.toLowerCase();
+                const shouldShow = customerName.includes(searchTerm.toLowerCase());
+                row.style.display = shouldShow ? '' : 'none';
+            }
+        }
+
+        function sortTable(tableId, columnIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            rows.sort((a, b) => {
+                const aText = a.cells[columnIndex].textContent.trim();
+                const bText = b.cells[columnIndex].textContent.trim();
+                
+                // Try to parse as numbers first
+                if (!isNaN(aText) && !isNaN(bText)) {
+                    return parseInt(aText) - parseInt(bText);
+                }
+                
+                return aText.localeCompare(bText);
+            });
+            
+            // Clear and re-append sorted rows
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function exportToCSV(type) {
+            const data = type === 'active' 
+                ? emptiesData.filter(e => !e.cleared)
+                : emptiesData.filter(e => e.cleared);
+            
+            if (data.length === 0) {
+                showAlert('No data to export', 'error');
+                return;
+            }
+            
+            const headers = type === 'active' 
+                ? ['Customer', 'Qty', 'Date Owed', 'Days Overdue']
+                : ['Customer', 'Qty', 'Date Owed', 'Date Cleared', 'Days Taken'];
+            
+            const csvContent = [
+                headers.join(','),
+                ...data.map(entry => {
+                    if (type === 'active') {
+                        const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                        return [entry.customerName, entry.qtyOwed, entry.dateOwed, daysPassed].join(',');
+                    } else {
+                        const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                        return [entry.customerName, entry.qtyOwed, entry.dateOwed, entry.dateCleared, daysTaken].join(',');
+                    }
+                })
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `empties-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showAlert(`Exported ${data.length} records to CSV`, 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-GB');
+        }
+
+        function saveData() {
+            localStorage.setItem('emptiesData', JSON.stringify(emptiesData));
+            localStorage.setItem('nextId', nextId.toString());
+        }
+    </script>
+</body>
+</html>
