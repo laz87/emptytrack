@@ -1,27 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#667eea">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Empties Tracker</title>
     <style>
+        /* General Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* Body Styling */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* Container for the entire application */
         .container {
             max-width: 1200px;
+            width: 100%;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -29,6 +34,7 @@
             overflow: hidden;
         }
 
+        /* Header Section */
         .header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
             color: white;
@@ -46,10 +52,12 @@
             font-size: 1.1em;
         }
 
+        /* Main Content Area */
         .main-content {
             padding: 30px;
         }
 
+        /* Tab Navigation */
         .tabs {
             display: flex;
             background: #f8f9fa;
@@ -76,6 +84,7 @@
             transform: translateY(-2px);
         }
 
+        /* Tab Content Sections */
         .tab-content {
             display: none;
         }
@@ -90,6 +99,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Form Section */
         .form-section {
             background: #f8f9fa;
             padding: 25px;
@@ -99,7 +109,7 @@
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 100px 150px 120px;
+            grid-template-columns: 1fr 100px 150px 120px; /* Adjusted for responsiveness */
             gap: 15px;
             align-items: end;
             margin-bottom: 20px;
@@ -129,6 +139,7 @@
             border-color: #667eea;
         }
 
+        /* Buttons */
         .btn {
             padding: 12px 25px;
             border: none;
@@ -170,6 +181,7 @@
             background: #138496;
         }
 
+        /* Statistics Cards */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -185,6 +197,10 @@
             text-align: center;
         }
 
+        .stat-card.green {
+            background: linear-gradient(135deg, #28a745, #218838);
+        }
+
         .stat-card h3 {
             font-size: 2em;
             margin-bottom: 10px;
@@ -194,11 +210,18 @@
             opacity: 0.9;
         }
 
+        /* Table Section */
         .table-section {
             background: white;
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* Make tables horizontally scrollable on small screens */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
 
         .table-header {
@@ -208,6 +231,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
 
         .search-box {
@@ -220,6 +244,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px; /* Ensure minimum width for horizontal scroll */
         }
 
         th, td {
@@ -232,12 +257,19 @@
             background: #f8f9fa;
             font-weight: 600;
             color: #2c3e50;
+            cursor: pointer; /* Indicate sortable columns */
         }
 
         tbody tr:hover {
             background: #f8f9fa;
         }
 
+        /* Visual Indicator for Advance Customers */
+        tbody tr.has-advance {
+            background-color: #e6ffe6; /* Light green */
+        }
+
+        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -249,11 +281,13 @@
             margin-bottom: 10px;
         }
 
+        /* Alert Messages */
         .alert {
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
             display: none;
+            animation: slideDown 0.3s ease;
         }
 
         .alert.success {
@@ -262,9 +296,14 @@
             border: 1px solid #c3e6cb;
         }
 
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
         .alert.show {
             display: block;
-            animation: slideDown 0.3s ease;
         }
 
         @keyframes slideDown {
@@ -272,7 +311,72 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Custom Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .modal-content input {
+            width: calc(100% - 24px); /* Account for padding */
+            margin-bottom: 20px;
+        }
+
+        .modal-content .btn {
+            width: 100%;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .main-content {
+                padding: 15px;
+            }
             .form-row {
                 grid-template-columns: 1fr;
                 gap: 10px;
@@ -292,12 +396,18 @@
                 gap: 15px;
             }
             
+            /* Tables will now scroll horizontally if content overflows */
             table {
                 font-size: 14px;
+                min-width: unset; /* Remove fixed min-width on small screens, let overflow handle it */
             }
             
             th, td {
                 padding: 10px 8px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -306,12 +416,13 @@
     <div class="container">
         <div class="header">
             <h1>🍺 Customer Empties Tracker</h1>
-            <p>Track unreturned kegs and manage customer debt</p>
+            <p>Track unreturned kegs and manage customer debt and advance credits</p>
         </div>
 
         <div class="main-content">
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('active')">Currently Owed</button>
+                <button class="tab" onclick="switchTab('advance')">Advance Empties</button>
                 <button class="tab" onclick="switchTab('add')">Add New Entry</button>
                 <button class="tab" onclick="switchTab('history')">Cleared History</button>
             </div>
@@ -339,7 +450,7 @@
                             <input type="text" class="search-box" id="search-active" placeholder="Search customers..." onkeyup="filterTable('active-table', this.value)">
                         </div>
                     </div>
-                    <div id="active-table-container">
+                    <div id="active-table-container" class="table-responsive">
                         <table id="active-table">
                             <thead>
                                 <tr>
@@ -355,6 +466,52 @@
                         <div class="empty-state" id="active-empty" style="display: none;">
                             <h3>🎉 No Unreturned Empties!</h3>
                             <p>All customers have returned their kegs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advance Empties Tab -->
+            <div id="advance-tab" class="tab-content">
+                <div class="stats">
+                    <div class="stat-card green">
+                        <h3 id="total-advance-customers">0</h3>
+                        <p>Customers with Advance</p>
+                    </div>
+                    <div class="stat-card green">
+                        <h3 id="total-advance-empties">0</h3>
+                        <p>Total Advance Empties</p>
+                    </div>
+                    <div class="stat-card green">
+                        <h3 id="percent-advance-users">0%</h3>
+                        <p>Customers Using Advance</p>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3>Advance Empties Available</h3>
+                        <div>
+                            <button class="btn btn-export" onclick="exportToCSV('advance')">Export CSV</button>
+                            <input type="text" class="search-box" id="search-advance" placeholder="Search customers..." onkeyup="filterTable('advance-table', this.value)">
+                        </div>
+                    </div>
+                    <div id="advance-table-container" class="table-responsive">
+                        <table id="advance-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('advance-table', 0)">Customer ↕</th>
+                                    <th onclick="sortTable('advance-table', 1)">Advance Qty ↕</th>
+                                    <th onclick="sortTable('advance-table', 2)">Date Credited ↕</th>
+                                    <th>Days Held</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="empty-state" id="advance-empty" style="display: none;">
+                            <h3>💰 No Advance Empties!</h3>
+                            <p>Customers haven't returned surplus empties yet.</p>
                         </div>
                     </div>
                 </div>
@@ -396,7 +553,7 @@
                             <input type="text" class="search-box" id="search-history" placeholder="Search customers..." onkeyup="filterTable('history-table', this.value)">
                         </div>
                     </div>
-                    <div id="history-table-container">
+                    <div id="history-table-container" class="table-responsive">
                         <table id="history-table">
                             <thead>
                                 <tr>
@@ -419,25 +576,58 @@
         </div>
     </div>
 
+    <!-- Custom Modal for Mark Returned Quantity -->
+    <div id="markReturnedModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('markReturnedModal')">&times;</span>
+            <h2>Mark Empties Returned</h2>
+            <p>Enter the quantity of empties returned:</p>
+            <input type="number" id="returnedQtyInput" min="1" placeholder="Quantity Returned">
+            <button class="btn btn-primary" id="confirmReturnBtn">Confirm Return</button>
+        </div>
+    </div>
+
     <script>
         // Data storage
         let emptiesData = JSON.parse(localStorage.getItem('emptiesData')) || [];
+        let advanceEmpties = JSON.parse(localStorage.getItem('advanceEmpties')) || [];
         let nextId = parseInt(localStorage.getItem('nextId')) || 1;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Set today's date as default
+            // Set today's date as default for new entries
             document.getElementById('date-owed').valueAsDate = new Date();
             
-            // Load data
-            refreshActiveTable();
-            refreshHistoryTable();
-            updateStats();
+            // Load and refresh all data displays
+            refreshAllTablesAndStats();
             
             // Add form handler
             document.getElementById('add-form').addEventListener('submit', addEntry);
+
+            // Modal confirm button handler
+            document.getElementById('confirmReturnBtn').addEventListener('click', function() {
+                const returnedQty = parseInt(document.getElementById('returnedQtyInput').value);
+                const entryId = document.getElementById('confirmReturnBtn').dataset.entryId; // Get the ID from data attribute
+
+                if (isNaN(returnedQty) || returnedQty <= 0) {
+                    showAlert('Please enter a valid positive quantity.', 'error');
+                    return;
+                }
+                processReturn(parseInt(entryId), returnedQty);
+                closeModal('markReturnedModal');
+            });
         });
 
+        // Function to refresh all tables and stats
+        function refreshAllTablesAndStats() {
+            refreshActiveTable();
+            refreshAdvanceTable(); // New: Refresh advance table
+            refreshHistoryTable();
+            updateStats();
+            updateAdvanceStats(); // New: Update advance stats
+        }
+
+        // Function to switch between tabs
         function switchTab(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -451,31 +641,74 @@
             
             // Show selected tab
             document.getElementById(tabName + '-tab').classList.add('active');
-            event.target.classList.add('active');
+            // Find the button that was clicked to activate the tab
+            const clickedButton = Array.from(document.querySelectorAll('.tab')).find(btn => btn.onclick.toString().includes(`'${tabName}'`));
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
         }
 
-        function addEntry(e) {
+        // Function to add a new empties entry (debt)
+        async function addEntry(e) {
             e.preventDefault();
             
             const customerName = document.getElementById('customer-name').value.trim();
-            const qtyOwed = parseInt(document.getElementById('qty-owed').value);
+            let qtyOwed = parseInt(document.getElementById('qty-owed').value); // Use let as it might be modified
             const dateOwed = document.getElementById('date-owed').value;
             
-            if (!customerName || !qtyOwed || !dateOwed) {
-                showAlert('Please fill in all fields', 'error');
+            if (!customerName || isNaN(qtyOwed) || qtyOwed <= 0 || !dateOwed) {
+                showAlert('Please fill in all fields with valid data.', 'error');
                 return;
             }
+
+            let message = `Added ${qtyOwed} unreturned empties for ${customerName}.`;
+
+            // --- Debt Clearance Logic: Check for existing advance balance ---
+            const customerAdvance = calculateAdvanceBalance(customerName);
+
+            if (customerAdvance > 0) {
+                const deductionAmount = Math.min(qtyOwed, customerAdvance);
+                
+                // Deduct from advance
+                let remainingDeduction = deductionAmount;
+                // Prioritize using oldest advance entries first
+                advanceEmpties.sort((a, b) => new Date(a.dateCreated) - new Date(b.dateCreated));
+
+                for (let i = 0; i < advanceEmpties.length && remainingDeduction > 0; i++) {
+                    const advance = advanceEmpties[i];
+                    if (advance.customerName === customerName && !advance.dateUsed) {
+                        const amountToDeductFromThisAdvance = Math.min(remainingDeduction, advance.quantity);
+                        advance.quantity -= amountToDeductFromThisAdvance;
+                        remainingDeduction -= amountToDeductFromThisAdvance;
+
+                        if (advance.quantity === 0) {
+                            advance.dateUsed = new Date().toISOString().split('T')[0];
+                            advance.referenceId = nextId; // Link to the new debt entry being created
+                        }
+                    }
+                }
+                
+                qtyOwed -= deductionAmount; // Reduce the new debt by the applied advance
+                message = `${deductionAmount} advance empties applied for ${customerName}. Remaining new debt: ${qtyOwed}.`;
+                showAlert(message, 'success');
+            }
+            // --- End Debt Clearance Logic ---
+
+            if (qtyOwed > 0) { // Only add new debt if there's a remaining quantity
+                const newEntry = {
+                    id: nextId++,
+                    customerName,
+                    qtyOwed,
+                    dateOwed,
+                    cleared: false,
+                    dateCleared: null
+                };
+                emptiesData.push(newEntry);
+            } else if (customerAdvance > 0 && qtyOwed <= 0) {
+                // If debt was fully covered by advance, no new debt entry is needed.
+                // The message about advance application is already shown.
+            }
             
-            const newEntry = {
-                id: nextId++,
-                customerName,
-                qtyOwed,
-                dateOwed,
-                cleared: false,
-                dateCleared: null
-            };
-            
-            emptiesData.push(newEntry);
             saveData();
             
             // Reset form
@@ -483,31 +716,101 @@
             document.getElementById('date-owed').valueAsDate = new Date();
             
             // Refresh displays
-            refreshActiveTable();
-            updateStats();
-            
-            showAlert(`Added ${qtyOwed} unreturned empties for ${customerName}`, 'success');
+            refreshAllTablesAndStats();
             
             // Switch to active tab
             switchTab('active');
-            document.querySelector('.tab').click();
+            document.querySelector('.tab.active').click(); // Ensure the active tab button is highlighted
         }
 
-        function markAsReturned(id) {
-            const entry = emptiesData.find(e => e.id === id);
+        // Function to open the "Mark Returned" modal
+        function openMarkReturnedModal(entryId) {
+            const modal = document.getElementById('markReturnedModal');
+            const confirmBtn = document.getElementById('confirmReturnBtn');
+            const returnedQtyInput = document.getElementById('returnedQtyInput');
+
+            // Store the entry ID in the button's dataset
+            confirmBtn.dataset.entryId = entryId;
+            
+            // Pre-fill with the owed quantity for convenience
+            const entry = emptiesData.find(e => e.id === entryId);
             if (entry) {
+                returnedQtyInput.value = entry.qtyOwed;
+            } else {
+                returnedQtyInput.value = '';
+            }
+            
+            modal.style.display = 'flex'; // Use flex to center
+        }
+
+        // Function to close the modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Function to process the return after quantity is entered in modal
+        function processReturn(id, actualReturnedQty) {
+            const entryIndex = emptiesData.findIndex(e => e.id === id);
+            if (entryIndex === -1) {
+                showAlert('Entry not found.', 'error');
+                return;
+            }
+            const entry = emptiesData[entryIndex];
+            
+            if (actualReturnedQty > entry.qtyOwed) {
+                // Scenario 1: Returned quantity is more than owed (surplus)
+                const surplus = actualReturnedQty - entry.qtyOwed;
+                handleSurplus(entry.customerName, surplus, entry.id); // Pass debt entry ID as reference
+                entry.qtyOwed = 0; // Debt fully cleared
                 entry.cleared = true;
                 entry.dateCleared = new Date().toISOString().split('T')[0];
-                saveData();
-                
-                refreshActiveTable();
-                refreshHistoryTable();
-                updateStats();
-                
-                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}`, 'success');
+                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}. ${surplus} surplus added to advance.`, 'success');
+            } else if (actualReturnedQty < entry.qtyOwed) {
+                // Scenario 2: Returned quantity is less than owed (partial return)
+                entry.qtyOwed -= actualReturnedQty;
+                showAlert(`Partially returned ${actualReturnedQty} empties for ${entry.customerName}. Remaining owed: ${entry.qtyOwed}.`, 'success');
+            } else {
+                // Scenario 3: Returned quantity is exactly as owed
+                entry.cleared = true;
+                entry.dateCleared = new Date().toISOString().split('T')[0];
+                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}.`, 'success');
             }
+
+            saveData();
+            refreshAllTablesAndStats();
         }
 
+        // Function to handle surplus empties, adding to advance balance
+        function handleSurplus(customerName, surplus, referenceId = null) {
+            const existingAdvance = advanceEmpties.find(a => 
+                a.customerName === customerName && a.quantity > 0 && !a.dateUsed
+            );
+            
+            if (existingAdvance) {
+                existingAdvance.quantity += surplus;
+                existingAdvance.dateCreated = new Date().toISOString().split('T')[0]; // Update date to current for freshness
+                existingAdvance.referenceId = referenceId; // Link to the debt that generated the surplus
+            } else {
+                advanceEmpties.push({
+                    id: nextId++,
+                    customerName,
+                    quantity: surplus,
+                    dateCreated: new Date().toISOString().split('T')[0],
+                    dateUsed: null,
+                    referenceId: referenceId // Link to the debt that generated the surplus
+                });
+            }
+            saveData();
+        }
+
+        // Function to calculate a customer's total available advance balance
+        function calculateAdvanceBalance(customerName) {
+            return advanceEmpties
+                .filter(a => a.customerName === customerName && a.quantity > 0 && !a.dateUsed)
+                .reduce((sum, advance) => sum + advance.quantity, 0);
+        }
+
+        // Function to refresh the "Currently Owed" table
         function refreshActiveTable() {
             const activeEntries = emptiesData.filter(e => !e.cleared);
             const tbody = document.querySelector('#active-table tbody');
@@ -523,18 +826,51 @@
             
             tbody.innerHTML = activeEntries.map(entry => {
                 const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                const advanceBalance = calculateAdvanceBalance(entry.customerName);
+                const hasAdvanceClass = advanceBalance > 0 ? 'has-advance' : '';
+                const advanceSuffix = advanceBalance > 0 ? ` (Advance: ${advanceBalance})` : '';
+
                 return `
-                    <tr>
-                        <td><strong>${entry.customerName}</strong></td>
+                    <tr class="${hasAdvanceClass}">
+                        <td><strong>${entry.customerName}${advanceSuffix}</strong></td>
                         <td><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
                         <td>${formatDate(entry.dateOwed)}</td>
                         <td><span style="color: ${daysPassed > 7 ? '#dc3545' : daysPassed > 3 ? '#ffc107' : '#28a745'}; font-weight: 600;">${daysPassed} days</span></td>
-                        <td><button class="btn btn-success" onclick="markAsReturned(${entry.id})">Mark Returned</button></td>
+                        <td><button class="btn btn-success" onclick="openMarkReturnedModal(${entry.id})">Mark Returned</button></td>
                     </tr>
                 `;
             }).join('');
         }
 
+        // Function to refresh the "Advance Empties" table
+        function refreshAdvanceTable() {
+            const currentAdvances = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
+            const tbody = document.querySelector('#advance-table tbody');
+            const emptyState = document.getElementById('advance-empty');
+
+            if (currentAdvances.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = currentAdvances.map(advance => {
+                const daysHeld = Math.floor((new Date() - new Date(advance.dateCreated)) / (1000 * 60 * 60 * 24));
+                return `
+                    <tr>
+                        <td><strong>${advance.customerName}</strong></td>
+                        <td><span style="background: #e8f5e8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${advance.quantity}</span></td>
+                        <td>${formatDate(advance.dateCreated)}</td>
+                        <td><span style="color: ${daysHeld > 30 ? '#dc3545' : daysHeld > 7 ? '#ffc107' : '#28a745'}; font-weight: 600;">${daysHeld} days</span></td>
+                        <td><!-- Action button for future use, e.g., manually adjust advance --></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Function to refresh the "Cleared History" table
         function refreshHistoryTable() {
             const clearedEntries = emptiesData.filter(e => e.cleared);
             const tbody = document.querySelector('#history-table tbody');
@@ -550,9 +886,13 @@
             
             tbody.innerHTML = clearedEntries.map(entry => {
                 const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                const advanceBalance = calculateAdvanceBalance(entry.customerName);
+                const hasAdvanceClass = advanceBalance > 0 ? 'has-advance' : '';
+                const advanceSuffix = advanceBalance > 0 ? ` (Advance: ${advanceBalance})` : '';
+
                 return `
-                    <tr>
-                        <td><strong>${entry.customerName}</strong></td>
+                    <tr class="${hasAdvanceClass}">
+                        <td><strong>${entry.customerName}${advanceSuffix}</strong></td>
                         <td><span style="background: #e8f5e8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
                         <td>${formatDate(entry.dateOwed)}</td>
                         <td>${formatDate(entry.dateCleared)}</td>
@@ -562,15 +902,38 @@
             }).join('');
         }
 
+        // Function to update general statistics
         function updateStats() {
             const activeEntries = emptiesData.filter(e => !e.cleared);
-            const totalCustomers = activeEntries.length;
+            const totalCustomers = new Set(activeEntries.map(e => e.customerName)).size;
             const totalEmpties = activeEntries.reduce((sum, entry) => sum + entry.qtyOwed, 0);
             
             document.getElementById('total-customers').textContent = totalCustomers;
             document.getElementById('total-empties').textContent = totalEmpties;
         }
 
+        // Function to update advance statistics
+        function updateAdvanceStats() {
+            const currentAdvances = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
+            const totalAdvanceCustomers = new Set(currentAdvances.map(a => a.customerName)).size;
+            const totalAdvanceEmpties = currentAdvances.reduce((sum, advance) => sum + advance.quantity, 0);
+
+            // Calculate percentage of customers using advance
+            const allUniqueCustomers = new Set([
+                ...emptiesData.map(e => e.customerName),
+                ...advanceEmpties.map(a => a.customerName)
+            ]).size;
+            
+            const percentAdvanceUsers = allUniqueCustomers > 0 
+                ? ((totalAdvanceCustomers / allUniqueCustomers) * 100).toFixed(0) 
+                : 0;
+
+            document.getElementById('total-advance-customers').textContent = totalAdvanceCustomers;
+            document.getElementById('total-advance-empties').textContent = totalAdvanceEmpties;
+            document.getElementById('percent-advance-users').textContent = `${percentAdvanceUsers}%`;
+        }
+
+        // Function to filter tables based on search term
         function filterTable(tableId, searchTerm) {
             const table = document.getElementById(tableId);
             const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
@@ -582,21 +945,36 @@
             }
         }
 
+        // Function to sort tables
         function sortTable(tableId, columnIndex) {
             const table = document.getElementById(tableId);
             const tbody = table.getElementsByTagName('tbody')[0];
             const rows = Array.from(tbody.getElementsByTagName('tr'));
             
+            // Determine sorting direction (ascending/descending)
+            const currentDirection = table.dataset.sortDirection || 'asc';
+            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+            table.dataset.sortDirection = newDirection; // Store for next sort
+
             rows.sort((a, b) => {
                 const aText = a.cells[columnIndex].textContent.trim();
                 const bText = b.cells[columnIndex].textContent.trim();
                 
-                // Try to parse as numbers first
-                if (!isNaN(aText) && !isNaN(bText)) {
-                    return parseInt(aText) - parseInt(bText);
+                let comparison = 0;
+                // Try to parse as numbers for numeric columns (Qty, Days Overdue/Held/Taken)
+                if (columnIndex === 1 || columnIndex === 3 || columnIndex === 4) { // Qty, Days Overdue/Held, Days Taken
+                    const aNum = parseInt(aText.replace(/[^0-9.]/g, '')); // Extract number
+                    const bNum = parseInt(bText.replace(/[^0-9.]/g, ''));
+                    comparison = aNum - bNum;
+                } else if (columnIndex === 2 || columnIndex === 3) { // Date Owed, Date Cleared, Date Credited
+                    const aDate = new Date(aText);
+                    const bDate = new Date(bText);
+                    comparison = aDate - bDate;
+                } else {
+                    comparison = aText.localeCompare(bText);
                 }
-                
-                return aText.localeCompare(bText);
+
+                return newDirection === 'asc' ? comparison : -comparison;
             });
             
             // Clear and re-append sorted rows
@@ -604,44 +982,65 @@
             rows.forEach(row => tbody.appendChild(row));
         }
 
+        // Function to export data to CSV
         function exportToCSV(type) {
-            const data = type === 'active' 
-                ? emptiesData.filter(e => !e.cleared)
-                : emptiesData.filter(e => e.cleared);
-            
-            if (data.length === 0) {
-                showAlert('No data to export', 'error');
+            let data = [];
+            let headers = [];
+            let filename = `empties-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+
+            if (type === 'active') {
+                data = emptiesData.filter(e => !e.cleared);
+                headers = ['Customer', 'Qty', 'Date Owed', 'Days Overdue', 'Advance Balance'];
+                const csvRows = data.map(entry => {
+                    const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                    const advanceBalance = calculateAdvanceBalance(entry.customerName);
+                    return [entry.customerName, entry.qtyOwed, entry.dateOwed, daysPassed, advanceBalance].map(val => `"${val}"`).join(',');
+                });
+                data = csvRows; // Now data holds formatted CSV rows
+            } else if (type === 'history') {
+                data = emptiesData.filter(e => e.cleared);
+                headers = ['Customer', 'Qty', 'Date Owed', 'Date Cleared', 'Days Taken', 'Advance Balance'];
+                const csvRows = data.map(entry => {
+                    const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
+                    const advanceBalance = calculateAdvanceBalance(entry.customerName);
+                    return [entry.customerName, entry.qtyOwed, entry.dateOwed, entry.dateCleared, daysTaken, advanceBalance].map(val => `"${val}"`).join(',');
+                });
+                data = csvRows;
+            } else if (type === 'advance') {
+                data = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
+                headers = ['Customer', 'Advance Qty', 'Date Credited', 'Days Held', 'Date Last Used', 'Reference ID'];
+                const csvRows = data.map(entry => {
+                    const daysHeld = Math.floor((new Date() - new Date(entry.dateCreated)) / (1000 * 60 * 60 * 24));
+                    return [entry.customerName, entry.quantity, entry.dateCreated, daysHeld, entry.dateUsed || 'N/A', entry.referenceId || 'N/A'].map(val => `"${val}"`).join(',');
+                });
+                data = csvRows;
+            } else {
+                showAlert('Invalid export type.', 'error');
                 return;
             }
             
-            const headers = type === 'active' 
-                ? ['Customer', 'Qty', 'Date Owed', 'Days Overdue']
-                : ['Customer', 'Qty', 'Date Owed', 'Date Cleared', 'Days Taken'];
+            if (data.length === 0) {
+                showAlert('No data to export for this category.', 'error');
+                return;
+            }
             
             const csvContent = [
                 headers.join(','),
-                ...data.map(entry => {
-                    if (type === 'active') {
-                        const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                        return [entry.customerName, entry.qtyOwed, entry.dateOwed, daysPassed].join(',');
-                    } else {
-                        const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                        return [entry.customerName, entry.qtyOwed, entry.dateOwed, entry.dateCleared, daysTaken].join(',');
-                    }
-                })
+                ...data
             ].join('\n');
             
-            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `empties-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = filename;
             a.click();
             window.URL.revokeObjectURL(url);
             
-            showAlert(`Exported ${data.length} records to CSV`, 'success');
+            showAlert(`Exported ${data.length} records to ${filename}`, 'success');
         }
 
+        // Function to show alert messages
         function showAlert(message, type) {
             const alert = document.getElementById('alert');
             alert.textContent = message;
@@ -652,12 +1051,16 @@
             }, 3000);
         }
 
+        // Utility function to format date strings
         function formatDate(dateString) {
+            if (!dateString) return 'N/A';
             return new Date(dateString).toLocaleDateString('en-GB');
         }
 
+        // Function to save all data to localStorage
         function saveData() {
             localStorage.setItem('emptiesData', JSON.stringify(emptiesData));
+            localStorage.setItem('advanceEmpties', JSON.stringify(advanceEmpties));
             localStorage.setItem('nextId', nextId.toString());
         }
     </script>
