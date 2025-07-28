@@ -3,1065 +3,1617 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Empties Tracker</title>
+    <title>Brewery Empties Tracker</title>
     <style>
-        /* General Reset */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Body Styling */
+        :root {
+            --bottles-primary: #22C55E;
+            --bottles-secondary: #16A34A;
+            --bottles-bg: #F0FDF4;
+            --crates-primary: #3B82F6;
+            --crates-secondary: #1D4ED8;
+            --crates-bg: #EFF6FF;
+            --kegs-primary: #F59E0B;
+            --kegs-secondary: #D97706;
+            --kegs-bg: #FFFBEB;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --bg-light: #F9FAFB;
+            --border-color: #E5E7EB;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-primary);
+            padding-bottom: 80px;
         }
 
-        /* Container for the entire application */
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        /* Header Section */
         .header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+            background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
             color: white;
-            padding: 30px;
-            text-align: center;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
         }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1em;
+        .breadcrumb {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 0.25rem;
         }
 
-        /* Main Content Area */
-        .main-content {
-            padding: 30px;
-        }
-
-        /* Tab Navigation */
-        .tabs {
+        .header-actions {
             display: flex;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 44px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--bottles-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--bottles-secondary);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            position: relative;
             overflow: hidden;
         }
 
-        .tab {
-            flex: 1;
-            padding: 15px 20px;
-            background: transparent;
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--card-color);
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .product-card.bottles {
+            --card-color: var(--bottles-primary);
+        }
+
+        .product-card.crates {
+            --card-color: var(--crates-primary);
+        }
+
+        .product-card.kegs {
+            --card-color: var(--kegs-primary);
+        }
+
+        .product-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--card-color);
+        }
+
+        .product-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .product-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .product-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--card-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        .product-view {
+            display: none;
+        }
+
+        .product-view.active {
+            display: block;
+        }
+
+        .product-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .product-header-icon {
+            font-size: 2.5rem;
+            color: var(--product-color);
+        }
+
+        .product-header-info h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .product-header-info p {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .tab-container {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: var(--bg-light);
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .tab-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            padding: 1rem 1.5rem;
             border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            color: #666;
+            white-space: nowrap;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
         }
 
-        .tab.active {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
+        .tab-btn.active {
+            color: var(--product-color);
+            border-bottom-color: var(--product-color);
+            background: white;
         }
 
-        /* Tab Content Sections */
         .tab-content {
+            padding: 2rem;
             display: none;
         }
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Form Section */
-        .form-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-
-        .form-row {
+        .entry-form {
             display: grid;
-            grid-template-columns: 1fr 100px 150px 120px; /* Adjusted for responsiveness */
-            gap: 15px;
-            align-items: end;
-            margin-bottom: 20px;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
+            gap: 0.5rem;
         }
 
-        .form-group label {
-            margin-bottom: 5px;
+        .form-label {
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--text-primary);
         }
 
-        .form-group input {
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+        .form-input, .form-select {
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            min-height: 44px;
         }
 
-        .form-group input:focus {
+        .form-input:focus, .form-select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--product-color);
         }
 
-        /* Buttons */
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5a67d8;
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .btn-export {
-            background: #17a2b8;
-            color: white;
-            margin-bottom: 20px;
-        }
-
-        .btn-export:hover {
-            background: #138496;
-        }
-
-        /* Statistics Cards */
-        .stats {
+        .form-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr 100px;
+            gap: 1rem;
         }
 
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .stat-card.green {
-            background: linear-gradient(135deg, #28a745, #218838);
-        }
-
-        .stat-card h3 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .stat-card p {
-            opacity: 0.9;
-        }
-
-        /* Table Section */
-        .table-section {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        /* Make tables horizontally scrollable on small screens */
-        .table-responsive {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        }
-
-        .table-header {
-            background: #2c3e50;
-            color: white;
-            padding: 20px;
+        .debt-list, .advance-list {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        .search-box {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            width: 250px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px; /* Ensure minimum width for horizontal scroll */
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #2c3e50;
-            cursor: pointer; /* Indicate sortable columns */
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        /* Visual Indicator for Advance Customers */
-        tbody tr.has-advance {
-            background-color: #e6ffe6; /* Light green */
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-
-        /* Alert Messages */
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        .alert.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .alert.show {
-            display: block;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Custom Modal */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+        .debt-item, .advance-item {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
             position: relative;
         }
 
-        .close-button {
-            color: #aaa;
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 28px;
-            font-weight: bold;
+        .debt-item:hover, .advance-item:hover {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .debt-header, .advance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .customer-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .debt-amount, .advance-amount {
+            font-weight: 700;
+            color: var(--product-color);
+        }
+
+        .debt-details, .advance-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .debt-actions, .advance-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-small {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 0.375rem;
+            min-height: 32px;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #D97706;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 90px;
+            right: 1rem;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--product-color, var(--bottles-primary));
+            color: white;
+            border: none;
+            font-size: 1.5rem;
             cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 50;
         }
 
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            z-index: 100;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            border: none;
+            background: transparent;
             cursor: pointer;
+            transition: background-color 0.2s;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            min-height: 60px;
         }
 
-        .modal-content h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
+        .nav-item.active {
+            color: var(--product-color, var(--bottles-primary));
+            background: var(--bg-light);
         }
 
-        .modal-content input {
-            width: calc(100% - 24px); /* Account for padding */
-            margin-bottom: 20px;
+        .nav-item:hover {
+            background: var(--bg-light);
         }
 
-        .modal-content .btn {
+        .nav-icon {
+            font-size: 1.25rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
             width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
-        /* Responsive Design */
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .search-bar {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 2rem;
+            font-size: 1rem;
+            background: var(--bg-light);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--product-color);
+            background: white;
+        }
+
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 150;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.info {
+            background: var(--crates-primary);
+        }
+
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
+            .product-grid {
+                grid-template-columns: 1fr;
             }
-            .main-content {
-                padding: 15px;
-            }
+            
             .form-row {
                 grid-template-columns: 1fr;
-                gap: 10px;
             }
             
-            .tabs {
-                flex-direction: column;
+            .modal-content {
+                margin: 1rem;
+                padding: 1.5rem;
             }
             
-            .search-box {
-                width: 100%;
-                margin-top: 10px;
+            .header h1 {
+                font-size: 1.1rem;
             }
             
-            .table-header {
-                flex-direction: column;
-                gap: 15px;
+            .product-header {
+                padding: 1rem;
             }
             
-            /* Tables will now scroll horizontally if content overflows */
-            table {
-                font-size: 14px;
-                min-width: unset; /* Remove fixed min-width on small screens, let overflow handle it */
+            .tab-content {
+                padding: 1rem;
             }
-            
-            th, td {
-                padding: 10px 8px;
-            }
+        }
 
-            .stats {
+        @media (max-width: 480px) {
+            .product-stats {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🍺 Customer Empties Tracker</h1>
-            <p>Track unreturned kegs and manage customer debt and advance credits</p>
+    <div class="header">
+        <div class="header-content">
+            <div>
+                <h1 id="headerTitle">Brewery Empties Tracker</h1>
+                <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportData()">
+                    📊 Export
+                </button>
+                <button class="btn btn-secondary" onclick="showSettings()">
+                    ⚙️ Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view active">
+            <div class="product-grid">
+                <div class="product-card bottles" onclick="showProductView('bottles')">
+                    <div class="product-icon">🍺</div>
+                    <h3 class="product-title">Bottles</h3>
+                    <p class="product-description">Track returnable beer bottles across all brands</p>
+                    <div class="product-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="bottlesDebtCount">0</div>
+                            <div class="stat-label">Active Debts</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="bottlesAdvanceCount">0</div>
+                            <div class="stat-label">Advances</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card crates" onclick="showProductView('crates')">
+                    <div class="product-icon">📦</div>
+                    <h3 class="product-title">Crates</h3>
+                    <p class="product-description">Manage bottle crates and their circulation</p>
+                    <div class="product-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="cratesDebtCount">0</div>
+                            <div class="stat-label">Active Debts</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="cratesAdvanceCount">0</div>
+                            <div class="stat-label">Advances</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card kegs" onclick="showProductView('kegs')">
+                    <div class="product-icon">🛢️</div>
+                    <h3 class="product-title">Kegs</h3>
+                    <p class="product-description">Monitor keg rentals and returns</p>
+                    <div class="product-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="kegsDebtCount">0</div>
+                            <div class="stat-label">Active Debts</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="kegsAdvanceCount">0</div>
+                            <div class="stat-label">Advances</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="main-content">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('active')">Currently Owed</button>
-                <button class="tab" onclick="switchTab('advance')">Advance Empties</button>
-                <button class="tab" onclick="switchTab('add')">Add New Entry</button>
-                <button class="tab" onclick="switchTab('history')">Cleared History</button>
-            </div>
-
-            <div class="alert success" id="alert"></div>
-
-            <!-- Active Debtors Tab -->
-            <div id="active-tab" class="tab-content active">
-                <div class="stats">
-                    <div class="stat-card">
-                        <h3 id="total-customers">0</h3>
-                        <p>Customers Owing</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="total-empties">0</h3>
-                        <p>Total Empties Owed</p>
-                    </div>
-                </div>
-
-                <div class="table-section">
-                    <div class="table-header">
-                        <h3>Currently Unreturned Empties</h3>
-                        <div>
-                            <button class="btn btn-export" onclick="exportToCSV('active')">Export CSV</button>
-                            <input type="text" class="search-box" id="search-active" placeholder="Search customers..." onkeyup="filterTable('active-table', this.value)">
-                        </div>
-                    </div>
-                    <div id="active-table-container" class="table-responsive">
-                        <table id="active-table">
-                            <thead>
-                                <tr>
-                                    <th onclick="sortTable('active-table', 0)">Customer ↕</th>
-                                    <th onclick="sortTable('active-table', 1)">Qty ↕</th>
-                                    <th onclick="sortTable('active-table', 2)">Date Owed ↕</th>
-                                    <th>Days Overdue</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                        <div class="empty-state" id="active-empty" style="display: none;">
-                            <h3>🎉 No Unreturned Empties!</h3>
-                            <p>All customers have returned their kegs</p>
-                        </div>
-                    </div>
+        <!-- Product Views -->
+        <div id="bottlesView" class="product-view">
+            <div class="product-header">
+                <div class="product-header-icon">🍺</div>
+                <div class="product-header-info">
+                    <h2>Bottles Management</h2>
+                    <p>Track returnable beer bottles</p>
                 </div>
             </div>
 
-            <!-- Advance Empties Tab -->
-            <div id="advance-tab" class="tab-content">
-                <div class="stats">
-                    <div class="stat-card green">
-                        <h3 id="total-advance-customers">0</h3>
-                        <p>Customers with Advance</p>
-                    </div>
-                    <div class="stat-card green">
-                        <h3 id="total-advance-empties">0</h3>
-                        <p>Total Advance Empties</p>
-                    </div>
-                    <div class="stat-card green">
-                        <h3 id="percent-advance-users">0%</h3>
-                        <p>Customers Using Advance</p>
-                    </div>
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="showTab('bottles', 'debts')">Active Debts</button>
+                    <button class="tab-btn" onclick="showTab('bottles', 'add')">Add Entry</button>
+                    <button class="tab-btn" onclick="showTab('bottles', 'advances')">Advances</button>
+                    <button class="tab-btn" onclick="showTab('bottles', 'history')">History</button>
                 </div>
 
-                <div class="table-section">
-                    <div class="table-header">
-                        <h3>Advance Empties Available</h3>
-                        <div>
-                            <button class="btn btn-export" onclick="exportToCSV('advance')">Export CSV</button>
-                            <input type="text" class="search-box" id="search-advance" placeholder="Search customers..." onkeyup="filterTable('advance-table', this.value)">
-                        </div>
+                <div id="bottles-debts" class="tab-content active">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search customers..." 
+                               oninput="filterDebts('bottles', this.value)">
                     </div>
-                    <div id="advance-table-container" class="table-responsive">
-                        <table id="advance-table">
-                            <thead>
-                                <tr>
-                                    <th onclick="sortTable('advance-table', 0)">Customer ↕</th>
-                                    <th onclick="sortTable('advance-table', 1)">Advance Qty ↕</th>
-                                    <th onclick="sortTable('advance-table', 2)">Date Credited ↕</th>
-                                    <th>Days Held</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                        <div class="empty-state" id="advance-empty" style="display: none;">
-                            <h3>💰 No Advance Empties!</h3>
-                            <p>Customers haven't returned surplus empties yet.</p>
-                        </div>
-                    </div>
+                    <div id="bottlesDebtList" class="debt-list"></div>
                 </div>
-            </div>
 
-            <!-- Add New Entry Tab -->
-            <div id="add-tab" class="tab-content">
-                <div class="form-section">
-                    <h3 style="margin-bottom: 20px; color: #2c3e50;">Add Unreturned Empties</h3>
-                    <form id="add-form">
+                <div id="bottles-add" class="tab-content">
+                    <form class="entry-form" onsubmit="addDebtEntry('bottles', event)">
+                        <div class="form-group">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" class="form-input" name="customerName" required 
+                                   placeholder="Enter customer name">
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="customer-name">Customer Name</label>
-                                <input type="text" id="customer-name" required>
+                                <label class="form-label">Product</label>
+                                <select class="form-select" name="productId" required>
+                                    <option value="">Select bottle type...</option>
+                                </select>
                             </div>
                             <div class="form-group">
-                                <label for="qty-owed">Quantity</label>
-                                <input type="number" id="qty-owed" min="1" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="date-owed">Date Owed</label>
-                                <input type="date" id="date-owed" required>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Add Entry</button>
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" name="quantity" required min="1" value="1">
                             </div>
                         </div>
+                        <button type="submit" class="btn btn-primary">Add Debt Entry</button>
                     </form>
                 </div>
+
+                <div id="bottles-advances" class="tab-content">
+                    <div id="bottlesAdvanceList" class="advance-list"></div>
+                </div>
+
+                <div id="bottles-history" class="tab-content">
+                    <div id="bottlesHistoryList" class="debt-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Similar structure for crates and kegs -->
+        <div id="cratesView" class="product-view">
+            <div class="product-header">
+                <div class="product-header-icon">📦</div>
+                <div class="product-header-info">
+                    <h2>Crates Management</h2>
+                    <p>Track bottle crates and circulation</p>
+                </div>
             </div>
 
-            <!-- History Tab -->
-            <div id="history-tab" class="tab-content">
-                <div class="table-section">
-                    <div class="table-header">
-                        <h3>Cleared Empties History</h3>
-                        <div>
-                            <button class="btn btn-export" onclick="exportToCSV('history')">Export CSV</button>
-                            <input type="text" class="search-box" id="search-history" placeholder="Search customers..." onkeyup="filterTable('history-table', this.value)">
-                        </div>
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="showTab('crates', 'debts')">Active Debts</button>
+                    <button class="tab-btn" onclick="showTab('crates', 'add')">Add Entry</button>
+                    <button class="tab-btn" onclick="showTab('crates', 'advances')">Advances</button>
+                    <button class="tab-btn" onclick="showTab('crates', 'history')">History</button>
+                </div>
+
+                <div id="crates-debts" class="tab-content active">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search customers..." 
+                               oninput="filterDebts('crates', this.value)">
                     </div>
-                    <div id="history-table-container" class="table-responsive">
-                        <table id="history-table">
-                            <thead>
-                                <tr>
-                                    <th onclick="sortTable('history-table', 0)">Customer ↕</th>
-                                    <th onclick="sortTable('history-table', 1)">Qty ↕</th>
-                                    <th onclick="sortTable('history-table', 2)">Date Owed ↕</th>
-                                    <th onclick="sortTable('history-table', 3)">Date Cleared ↕</th>
-                                    <th>Days Taken</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                        <div class="empty-state" id="history-empty" style="display: none;">
-                            <h3>📝 No History Yet</h3>
-                            <p>Cleared empties will appear here</p>
+                    <div id="cratesDebtList" class="debt-list"></div>
+                </div>
+
+                <div id="crates-add" class="tab-content">
+                    <form class="entry-form" onsubmit="addDebtEntry('crates', event)">
+                        <div class="form-group">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" class="form-input" name="customerName" required 
+                                   placeholder="Enter customer name">
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Product</label>
+                                <select class="form-select" name="productId" required>
+                                    <option value="">Select crate type...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" name="quantity" required min="1" value="1">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Debt Entry</button>
+                    </form>
+                </div>
+
+                <div id="crates-advances" class="tab-content">
+                    <div id="cratesAdvanceList" class="advance-list"></div>
+                </div>
+
+                <div id="crates-history" class="tab-content">
+                    <div id="cratesHistoryList" class="debt-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="kegsView" class="product-view">
+            <div class="product-header">
+                <div class="product-header-icon">🛢️</div>
+                <div class="product-header-info">
+                    <h2>Kegs Management</h2>
+                    <p>Monitor keg rentals and returns</p>
+                </div>
+            </div>
+
+            <div class="tab-container">
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="showTab('kegs', 'debts')">Active Debts</button>
+                    <button class="tab-btn" onclick="showTab('kegs', 'add')">Add Entry</button>
+                    <button class="tab-btn" onclick="showTab('kegs', 'advances')">Advances</button>
+                    <button class="tab-btn" onclick="showTab('kegs', 'history')">History</button>
+                </div>
+
+                <div id="kegs-debts" class="tab-content active">
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="Search customers..." 
+                               oninput="filterDebts('kegs', this.value)">
                     </div>
+                    <div id="kegsDebtList" class="debt-list"></div>
+                </div>
+
+                <div id="kegs-add" class="tab-content">
+                    <form class="entry-form" onsubmit="addDebtEntry('kegs', event)">
+                        <div class="form-group">
+                            <label class="form-label">Customer Name</label>
+                            <input type="text" class="form-input" name="customerName" required 
+                                   placeholder="Enter customer name">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Product</label>
+                                <select class="form-select" name="productId" required>
+                                    <option value="">Select keg type...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-input" name="quantity" required min="1" value="1">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Debt Entry</button>
+                    </form>
+                </div>
+
+                <div id="kegs-advances" class="tab-content">
+                    <div id="kegsAdvanceList" class="advance-list"></div>
+                </div>
+
+                <div id="kegs-history" class="tab-content">
+                    <div id="kegsHistoryList" class="debt-list"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Custom Modal for Mark Returned Quantity -->
-    <div id="markReturnedModal" class="modal">
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="quickAddEntry()" id="fabBtn">
+        ➕
+    </button>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="showView('dashboard')">
+            <div class="nav-icon">🏠</div>
+            <div>Home</div>
+        </button>
+        <button class="nav-item" onclick="showNotification('All Data view coming soon', 'info')">
+            <div class="nav-icon">📊</div>
+            <div>All Data</div>
+        </button>
+        <button class="nav-item" onclick="showNotification('Conversion tool coming soon', 'info')">
+            <div class="nav-icon">🔄</div>
+            <div>Convert</div>
+        </button>
+        <button class="nav-item" onclick="showNotification('Reports coming soon', 'info')">
+            <div class="nav-icon">📈</div>
+            <div>Reports</div>
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div id="returnModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" onclick="closeModal('markReturnedModal')">&times;</span>
-            <h2>Mark Empties Returned</h2>
-            <p>Enter the quantity of empties returned:</p>
-            <input type="number" id="returnedQtyInput" min="1" placeholder="Quantity Returned">
-            <button class="btn btn-primary" id="confirmReturnBtn">Confirm Return</button>
+            <div class="modal-header">
+                <h3 class="modal-title">Process Return</h3>
+                <button class="close-btn" onclick="closeModal('returnModal')">&times;</button>
+            </div>
+            <form onsubmit="processReturn(event)">
+                <div class="form-group">
+                    <label class="form-label">Return Quantity</label>
+                    <input type="number" class="form-input" id="returnQuantity" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="createAdvance"> Create advance for surplus
+                    </label>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('returnModal')">Cancel</button>
+                    <button type="submit" class="btn btn-success">Process Return</button>
+                </div>
+            </form>
         </div>
     </div>
 
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Entry</h3>
+                <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form onsubmit="saveEdit(event)">
+                <div class="form-group">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" class="form-input" id="editCustomerName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-input" id="editQuantity" required min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" class="form-input" id="editDate" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Settings</h3>
+                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Import Data</label>
+                <input type="file" class="form-input" accept=".json" onchange="importData(event)">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data Management</label>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-warning" onclick="clearAllData()">Clear All Data</button>
+                    <button type="button" class="btn btn-primary" onclick="exportData()">Export Backup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
     <script>
-        // Data storage
-        let emptiesData = JSON.parse(localStorage.getItem('emptiesData')) || [];
-        let advanceEmpties = JSON.parse(localStorage.getItem('advanceEmpties')) || [];
-        let nextId = parseInt(localStorage.getItem('nextId')) || 1;
+        // Simple data storage using browser's localStorage
+        class BreweryApp {
+            constructor() {
+                this.currentView = 'dashboard';
+                this.currentProductType = null;
+                this.activeTab = 'debts';
+                this.currentEditId = null;
+                this.currentReturnData = null;
+                
+                this.products = this.getFromStorage('products', []);
+                this.emptiesData = this.getFromStorage('emptiesData', []);
+                this.advanceEmpties = this.getFromStorage('advanceEmpties', []);
+                
+                this.initializeDefaultProducts();
+                this.updateUI();
+            }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set today's date as default for new entries
-            document.getElementById('date-owed').valueAsDate = new Date();
-            
-            // Load and refresh all data displays
-            refreshAllTablesAndStats();
-            
-            // Add form handler
-            document.getElementById('add-form').addEventListener('submit', addEntry);
+            getFromStorage(key, defaultValue) {
+                try {
+                    const stored = localStorage.getItem(key);
+                    return stored ? JSON.parse(stored) : defaultValue;
+                } catch (error) {
+                    console.error('Error reading from storage:', error);
+                    return defaultValue;
+                }
+            }
 
-            // Modal confirm button handler
-            document.getElementById('confirmReturnBtn').addEventListener('click', function() {
-                const returnedQty = parseInt(document.getElementById('returnedQtyInput').value);
-                const entryId = document.getElementById('confirmReturnBtn').dataset.entryId; // Get the ID from data attribute
+            saveToStorage(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (error) {
+                    console.error('Error saving to storage:', error);
+                }
+            }
 
-                if (isNaN(returnedQty) || returnedQty <= 0) {
-                    showAlert('Please enter a valid positive quantity.', 'error');
+            initializeDefaultProducts() {
+                if (this.products.length === 0) {
+                    this.products = [
+                        // Bottles
+                        { id: 1, name: 'Tusker 500ml Bottles', shortName: 'Tusker 500ml', type: 'bottles', brand: 'Tusker', unit: 'bottles' },
+                        { id: 2, name: 'Guinness 500ml Bottles', shortName: 'Guinness 500ml', type: 'bottles', brand: 'Guinness', unit: 'bottles' },
+                        { id: 3, name: 'Balozi 330ml Bottles', shortName: 'Balozi 330ml', type: 'bottles', brand: 'Balozi', unit: 'bottles' },
+                        
+                        // Crates
+                        { id: 4, name: 'DIA Crates (24 bottles)', shortName: 'DIA Crates', type: 'crates', brand: 'DIA', unit: 'crates' },
+                        { id: 5, name: 'TAIFA Crates (24 bottles)', shortName: 'TAIFA Crates', type: 'crates', brand: 'TAIFA', unit: 'crates' },
+                        { id: 6, name: 'VIENA Crates', shortName: 'VIENA Crates', type: 'crates', brand: 'VIENA', unit: 'crates' },
+                        
+                        // Kegs
+                        { id: 7, name: 'Dark Kegs 50L', shortName: 'Dark 50L', type: 'kegs', brand: 'Dark Beer', unit: 'kegs' },
+                        { id: 8, name: 'Light Kegs 30L', shortName: 'Light 30L', type: 'kegs', brand: 'Light Beer', unit: 'kegs' },
+                        { id: 9, name: 'Banana Kegs 25L', shortName: 'Banana 25L', type: 'kegs', brand: 'Banana Beer', unit: 'kegs' }
+                    ];
+                    this.saveToStorage('products', this.products);
+                }
+            }
+
+            showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            updateUI() {
+                this.updateDashboardStats();
+                this.updateProductSelects();
+                this.refreshCurrentView();
+            }
+
+            updateDashboardStats() {
+                const types = ['bottles', 'crates', 'kegs'];
+                
+                types.forEach(type => {
+                    const activeDebts = this.emptiesData.filter(item => 
+                        item.productType === type && !item.cleared
+                    ).length;
+                    
+                    const advances = this.advanceEmpties.filter(item => 
+                        item.productType === type && item.remainingQuantity > 0
+                    ).length;
+                    
+                    const debtCountEl = document.getElementById(`${type}DebtCount`);
+                    const advanceCountEl = document.getElementById(`${type}AdvanceCount`);
+                    
+                    if (debtCountEl) debtCountEl.textContent = activeDebts;
+                    if (advanceCountEl) advanceCountEl.textContent = advances;
+                });
+            }
+
+            updateProductSelects() {
+                const types = ['bottles', 'crates', 'kegs'];
+                
+                types.forEach(type => {
+                    const products = this.products.filter(p => p.type === type);
+                    const select = document.querySelector(`#${type}View select[name="productId"]`);
+                    
+                    if (select) {
+                        select.innerHTML = `<option value="">Select ${type.slice(0, -1)} type...</option>`;
+                        products.forEach(product => {
+                            select.innerHTML += `<option value="${product.id}">${product.name}</option>`;
+                        });
+                    }
+                });
+            }
+
+            refreshCurrentView() {
+                if (this.currentProductType) {
+                    this.refreshDebtList(this.currentProductType);
+                    this.refreshAdvanceList(this.currentProductType);
+                    this.refreshHistoryList(this.currentProductType);
+                }
+            }
+
+            refreshDebtList(productType) {
+                const debts = this.emptiesData.filter(item => 
+                    item.productType === productType && !item.cleared
+                );
+                
+                const container = document.getElementById(`${productType}DebtList`);
+                if (!container) return;
+                
+                if (debts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📋</div>
+                            <h3>No active debts</h3>
+                            <p>No customers currently owe any ${productType}</p>
+                        </div>
+                    `;
                     return;
                 }
-                processReturn(parseInt(entryId), returnedQty);
-                closeModal('markReturnedModal');
+                
+                container.innerHTML = debts.map(debt => {
+                    const product = this.products.find(p => p.id === debt.productId);
+                    const productName = product ? product.shortName : 'Unknown Product';
+                    const daysOld = Math.floor((new Date() - new Date(debt.dateOwed)) / (1000 * 60 * 60 * 24));
+                    
+                    return `
+                        <div class="debt-item">
+                            <div class="debt-header">
+                                <span class="customer-name">${debt.customerName}</span>
+                                <span class="debt-amount">${debt.quantity} ${product?.unit || 'units'}</span>
+                            </div>
+                            <div class="debt-details">
+                                <span>${productName}</span>
+                                <span>${daysOld} days old</span>
+                            </div>
+                            <div class="debt-actions">
+                                <button class="btn btn-small btn-success" onclick="openReturnModal(${debt.id})">
+                                    Return
+                                </button>
+                                <button class="btn btn-small btn-warning" onclick="openEditModal(${debt.id})">
+                                    Edit
+                                </button>
+                                <button class="btn btn-small btn-danger" onclick="deleteDebt(${debt.id})">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            refreshAdvanceList(productType) {
+                const advances = this.advanceEmpties.filter(item => 
+                    item.productType === productType && item.remainingQuantity > 0
+                );
+                
+                const container = document.getElementById(`${productType}AdvanceList`);
+                if (!container) return;
+                
+                if (advances.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">💰</div>
+                            <h3>No advance credits</h3>
+                            <p>No customers have advance credits for ${productType}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = advances.map(advance => {
+                    const product = this.products.find(p => p.id === advance.productId);
+                    const productName = product ? product.shortName : 'Unknown Product';
+                    
+                    return `
+                        <div class="advance-item">
+                            <div class="advance-header">
+                                <span class="customer-name">${advance.customerName}</span>
+                                <span class="advance-amount">${advance.remainingQuantity} ${product?.unit || 'units'}</span>
+                            </div>
+                            <div class="advance-details">
+                                <span>${productName}</span>
+                                <span>Credit available</span>
+                            </div>
+                            <div class="advance-actions">
+                                <button class="btn btn-small btn-danger" onclick="deleteAdvance(${advance.id})">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            refreshHistoryList(productType) {
+                const history = this.emptiesData.filter(item => 
+                    item.productType === productType && item.cleared
+                ).sort((a, b) => new Date(b.dateCleared) - new Date(a.dateCleared));
+                
+                const container = document.getElementById(`${productType}HistoryList`);
+                if (!container) return;
+                
+                if (history.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📜</div>
+                            <h3>No transaction history</h3>
+                            <p>No completed transactions for ${productType}</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = history.slice(0, 50).map(item => {
+                    const product = this.products.find(p => p.id === item.productId);
+                    const productName = product ? product.shortName : 'Unknown Product';
+                    const clearedDate = new Date(item.dateCleared).toLocaleDateString();
+                    
+                    return `
+                        <div class="debt-item">
+                            <div class="debt-header">
+                                <span class="customer-name">${item.customerName}</span>
+                                <span class="debt-amount">${item.quantity} ${product?.unit || 'units'}</span>
+                            </div>
+                            <div class="debt-details">
+                                <span>${productName}</span>
+                                <span>Cleared: ${clearedDate}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            generateId() {
+                return Date.now() + Math.random();
+            }
+        }
+
+        // Initialize app
+        const app = new BreweryApp();
+
+        // UI Functions
+        function showView(viewName) {
+            document.querySelectorAll('.view, .product-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            const targetView = document.getElementById(`${viewName}View`);
+            if (targetView) {
+                targetView.classList.add('active');
+                app.currentView = viewName;
+                app.currentProductType = null;
+            }
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event?.target.closest('.nav-item')?.classList.add('active');
+            
+            updateHeader();
+            updateProductColors();
+        }
+
+        function showProductView(productType) {
+            document.querySelectorAll('.view, .product-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            const productView = document.getElementById(`${productType}View`);
+            if (productView) {
+                productView.classList.add('active');
+                app.currentView = 'product';
+                app.currentProductType = productType;
+                app.activeTab = 'debts';
+            }
+            
+            updateHeader();
+            updateProductColors(productType);
+            app.refreshCurrentView();
+            showTab(productType, 'debts');
+        }
+
+        function showTab(productType, tabName) {
+            const tabContainer = document.querySelector(`#${productType}View .tab-nav`);
+            if (tabContainer) {
+                tabContainer.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                tabContainer.querySelector(`button[onclick*="'${tabName}'"]`)?.classList.add('active');
+            }
+            
+            const viewContainer = document.getElementById(`${productType}View`);
+            if (viewContainer) {
+                viewContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                const targetContent = document.getElementById(`${productType}-${tabName}`);
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                    app.activeTab = tabName;
+                }
+            }
+        }
+
+        function updateHeader() {
+            const headerTitle = document.getElementById('headerTitle');
+            const breadcrumb = document.getElementById('breadcrumb');
+            
+            if (app.currentView === 'dashboard') {
+                headerTitle.textContent = 'Brewery Empties Tracker';
+                breadcrumb.textContent = 'Dashboard';
+            } else if (app.currentProductType) {
+                const productName = app.currentProductType.charAt(0).toUpperCase() + app.currentProductType.slice(1);
+                headerTitle.textContent = `${productName} Management`;
+                breadcrumb.textContent = `Dashboard > ${productName}`;
+            }
+        }
+
+        function updateProductColors(productType) {
+            const root = document.documentElement;
+            
+            if (productType === 'bottles') {
+                root.style.setProperty('--product-color', 'var(--bottles-primary)');
+            } else if (productType === 'crates') {
+                root.style.setProperty('--product-color', 'var(--crates-primary)');
+            } else if (productType === 'kegs') {
+                root.style.setProperty('--product-color', 'var(--kegs-primary)');
+            } else {
+                root.style.setProperty('--product-color', 'var(--bottles-primary)');
+            }
+        }
+
+        // Entry Management Functions
+        function addDebtEntry(productType, event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const customerName = formData.get('customerName').trim();
+            const productId = parseInt(formData.get('productId'));
+            const quantity = parseInt(formData.get('quantity'));
+            
+            if (!customerName || !productId || !quantity) {
+                app.showNotification('Please fill all fields', 'error');
+                return;
+            }
+            
+            // Check for existing advances
+            const existingAdvance = app.advanceEmpties.find(advance => 
+                advance.customerName === customerName && 
+                advance.productId === productId && 
+                advance.remainingQuantity > 0
+            );
+            
+            let finalQuantity = quantity;
+            
+            if (existingAdvance && existingAdvance.remainingQuantity >= quantity) {
+                // Use advance to cover debt completely
+                existingAdvance.remainingQuantity -= quantity;
+                if (existingAdvance.remainingQuantity === 0) {
+                    app.advanceEmpties = app.advanceEmpties.filter(a => a.id !== existingAdvance.id);
+                }
+                app.showNotification('Debt covered by existing advance credit', 'success');
+                finalQuantity = 0;
+            } else if (existingAdvance && existingAdvance.remainingQuantity > 0) {
+                // Partial advance coverage
+                finalQuantity = quantity - existingAdvance.remainingQuantity;
+                app.advanceEmpties = app.advanceEmpties.filter(a => a.id !== existingAdvance.id);
+                app.showNotification(`Partial debt covered by advance. ${finalQuantity} units added as debt`, 'success');
+            }
+            
+            // Add remaining debt if any
+            if (finalQuantity > 0) {
+                const debtEntry = {
+                    id: app.generateId(),
+                    customerName,
+                    productId,
+                    productType,
+                    quantity: finalQuantity,
+                    dateOwed: new Date().toISOString(),
+                    cleared: false
+                };
+                
+                app.emptiesData.push(debtEntry);
+            }
+            
+            // Save and refresh
+            app.saveToStorage('emptiesData', app.emptiesData);
+            app.saveToStorage('advanceEmpties', app.advanceEmpties);
+            app.updateUI();
+            form.reset();
+            
+            if (finalQuantity === 0) {
+                app.showNotification('Entry added and covered by advance', 'success');
+            } else {
+                app.showNotification('Debt entry added successfully', 'success');
+            }
+        }
+
+        function openReturnModal(debtId) {
+            const debt = app.emptiesData.find(d => d.id === debtId);
+            if (!debt) return;
+            
+            app.currentReturnData = debt;
+            
+            const modal = document.getElementById('returnModal');
+            const quantityInput = document.getElementById('returnQuantity');
+            
+            quantityInput.value = debt.quantity;
+            quantityInput.max = debt.quantity * 2;
+            
+            modal.classList.add('active');
+        }
+
+        function processReturn(event) {
+            event.preventDefault();
+            
+            if (!app.currentReturnData) return;
+            
+            const returnQuantity = parseInt(document.getElementById('returnQuantity').value);
+            const createAdvance = document.getElementById('createAdvance').checked;
+            const debt = app.currentReturnData;
+            
+            if (returnQuantity === debt.quantity) {
+                // Exact return - mark as cleared
+                debt.cleared = true;
+                debt.dateCleared = new Date().toISOString();
+                app.showNotification('Debt cleared successfully', 'success');
+                
+            } else if (returnQuantity < debt.quantity) {
+                // Partial return - update debt quantity
+                debt.quantity -= returnQuantity;
+                app.showNotification(`Partial return processed. ${debt.quantity} units remaining`, 'success');
+                
+            } else if (returnQuantity > debt.quantity && createAdvance) {
+                // Surplus return - clear debt and create advance
+                const surplusQuantity = returnQuantity - debt.quantity;
+                
+                debt.cleared = true;
+                debt.dateCleared = new Date().toISOString();
+                
+                // Create advance for surplus
+                const advance = {
+                    id: app.generateId(),
+                    customerName: debt.customerName,
+                    productId: debt.productId,
+                    productType: debt.productType,
+                    quantity: surplusQuantity,
+                    remainingQuantity: surplusQuantity,
+                    dateCreated: new Date().toISOString()
+                };
+                
+                app.advanceEmpties.push(advance);
+                app.showNotification(`Debt cleared and ${surplusQuantity} units added as advance`, 'success');
+            }
+            
+            // Save and refresh
+            app.saveToStorage('emptiesData', app.emptiesData);
+            app.saveToStorage('advanceEmpties', app.advanceEmpties);
+            app.updateUI();
+            closeModal('returnModal');
+        }
+
+        function openEditModal(debtId) {
+            const debt = app.emptiesData.find(d => d.id === debtId);
+            if (!debt) return;
+            
+            app.currentEditId = debtId;
+            
+            const modal = document.getElementById('editModal');
+            document.getElementById('editCustomerName').value = debt.customerName;
+            document.getElementById('editQuantity').value = debt.quantity;
+            document.getElementById('editDate').value = debt.dateOwed.split('T')[0];
+            
+            modal.classList.add('active');
+        }
+
+        function saveEdit(event) {
+            event.preventDefault();
+            
+            if (!app.currentEditId) return;
+            
+            const debt = app.emptiesData.find(d => d.id === app.currentEditId);
+            if (!debt) return;
+            
+            debt.customerName = document.getElementById('editCustomerName').value.trim();
+            debt.quantity = parseInt(document.getElementById('editQuantity').value);
+            debt.dateOwed = new Date(document.getElementById('editDate').value).toISOString();
+            
+            app.saveToStorage('emptiesData', app.emptiesData);
+            app.updateUI();
+            
+            closeModal('editModal');
+            app.showNotification('Entry updated successfully', 'success');
+        }
+
+        function deleteDebt(debtId) {
+            if (!confirm('Are you sure you want to delete this debt entry?')) return;
+            
+            app.emptiesData = app.emptiesData.filter(d => d.id !== debtId);
+            app.saveToStorage('emptiesData', app.emptiesData);
+            app.updateUI();
+            
+            app.showNotification('Debt entry deleted', 'success');
+        }
+
+        function deleteAdvance(advanceId) {
+            if (!confirm('Are you sure you want to delete this advance credit?')) return;
+            
+            app.advanceEmpties = app.advanceEmpties.filter(a => a.id !== advanceId);
+            app.saveToStorage('advanceEmpties', app.advanceEmpties);
+            app.updateUI();
+            
+            app.showNotification('Advance credit deleted', 'success');
+        }
+
+        function filterDebts(productType, searchTerm) {
+            const container = document.getElementById(`${productType}DebtList`);
+            const debtItems = container.querySelectorAll('.debt-item');
+            
+            debtItems.forEach(item => {
+                const customerName = item.querySelector('.customer-name').textContent.toLowerCase();
+                const isVisible = customerName.includes(searchTerm.toLowerCase());
+                item.style.display = isVisible ? 'block' : 'none';
+            });
+        }
+
+        // Modal Functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            
+            if (modalId === 'returnModal') {
+                app.currentReturnData = null;
+            } else if (modalId === 'editModal') {
+                app.currentEditId = null;
+            }
+        }
+
+        function showSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+        }
+
+        // Data Management Functions
+        function exportData() {
+            const data = {
+                products: app.products,
+                emptiesData: app.emptiesData,
+                advanceEmpties: app.advanceEmpties,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `brewery-empties-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            app.showNotification('Data exported successfully', 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.products || !data.emptiesData || !data.advanceEmpties) {
+                        throw new Error('Invalid backup file format');
+                    }
+                    
+                    app.products = data.products;
+                    app.emptiesData = data.emptiesData;
+                    app.advanceEmpties = data.advanceEmpties;
+                    
+                    app.saveToStorage('products', app.products);
+                    app.saveToStorage('emptiesData', app.emptiesData);
+                    app.saveToStorage('advanceEmpties', app.advanceEmpties);
+                    
+                    app.updateUI();
+                    
+                    closeModal('settingsModal');
+                    app.showNotification('Data imported successfully', 'success');
+                    
+                } catch (error) {
+                    console.error('Error importing data:', error);
+                    app.showNotification('Error importing data. Please check the file format.', 'error');
+                }
+            };
+            
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllData() {
+            if (!confirm('Are you sure you want to clear all data? This action cannot be undone.')) return;
+            
+            localStorage.removeItem('products');
+            localStorage.removeItem('emptiesData');
+            localStorage.removeItem('advanceEmpties');
+            
+            app.products = [];
+            app.emptiesData = [];
+            app.advanceEmpties = [];
+            
+            app.initializeDefaultProducts();
+            app.updateUI();
+            
+            closeModal('settingsModal');
+            app.showNotification('All data cleared and reset to defaults', 'success');
+        }
+
+        // Additional Functions
+        function quickAddEntry() {
+            if (app.currentProductType) {
+                showTab(app.currentProductType, 'add');
+            } else {
+                app.showNotification('Please select a product type first', 'error');
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
             });
         });
 
-        // Function to refresh all tables and stats
-        function refreshAllTablesAndStats() {
-            refreshActiveTable();
-            refreshAdvanceTable(); // New: Refresh advance table
-            refreshHistoryTable();
-            updateStats();
-            updateAdvanceStats(); // New: Update advance stats
-        }
-
-        // Function to switch between tabs
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Show selected tab
-            document.getElementById(tabName + '-tab').classList.add('active');
-            // Find the button that was clicked to activate the tab
-            const clickedButton = Array.from(document.querySelectorAll('.tab')).find(btn => btn.onclick.toString().includes(`'${tabName}'`));
-            if (clickedButton) {
-                clickedButton.classList.add('active');
-            }
-        }
-
-        // Function to add a new empties entry (debt)
-        async function addEntry(e) {
-            e.preventDefault();
-            
-            const customerName = document.getElementById('customer-name').value.trim();
-            let qtyOwed = parseInt(document.getElementById('qty-owed').value); // Use let as it might be modified
-            const dateOwed = document.getElementById('date-owed').value;
-            
-            if (!customerName || isNaN(qtyOwed) || qtyOwed <= 0 || !dateOwed) {
-                showAlert('Please fill in all fields with valid data.', 'error');
-                return;
-            }
-
-            let message = `Added ${qtyOwed} unreturned empties for ${customerName}.`;
-
-            // --- Debt Clearance Logic: Check for existing advance balance ---
-            const customerAdvance = calculateAdvanceBalance(customerName);
-
-            if (customerAdvance > 0) {
-                const deductionAmount = Math.min(qtyOwed, customerAdvance);
-                
-                // Deduct from advance
-                let remainingDeduction = deductionAmount;
-                // Prioritize using oldest advance entries first
-                advanceEmpties.sort((a, b) => new Date(a.dateCreated) - new Date(b.dateCreated));
-
-                for (let i = 0; i < advanceEmpties.length && remainingDeduction > 0; i++) {
-                    const advance = advanceEmpties[i];
-                    if (advance.customerName === customerName && !advance.dateUsed) {
-                        const amountToDeductFromThisAdvance = Math.min(remainingDeduction, advance.quantity);
-                        advance.quantity -= amountToDeductFromThisAdvance;
-                        remainingDeduction -= amountToDeductFromThisAdvance;
-
-                        if (advance.quantity === 0) {
-                            advance.dateUsed = new Date().toISOString().split('T')[0];
-                            advance.referenceId = nextId; // Link to the new debt entry being created
-                        }
-                    }
-                }
-                
-                qtyOwed -= deductionAmount; // Reduce the new debt by the applied advance
-                message = `${deductionAmount} advance empties applied for ${customerName}. Remaining new debt: ${qtyOwed}.`;
-                showAlert(message, 'success');
-            }
-            // --- End Debt Clearance Logic ---
-
-            if (qtyOwed > 0) { // Only add new debt if there's a remaining quantity
-                const newEntry = {
-                    id: nextId++,
-                    customerName,
-                    qtyOwed,
-                    dateOwed,
-                    cleared: false,
-                    dateCleared: null
-                };
-                emptiesData.push(newEntry);
-            } else if (customerAdvance > 0 && qtyOwed <= 0) {
-                // If debt was fully covered by advance, no new debt entry is needed.
-                // The message about advance application is already shown.
-            }
-            
-            saveData();
-            
-            // Reset form
-            document.getElementById('add-form').reset();
-            document.getElementById('date-owed').valueAsDate = new Date();
-            
-            // Refresh displays
-            refreshAllTablesAndStats();
-            
-            // Switch to active tab
-            switchTab('active');
-            document.querySelector('.tab.active').click(); // Ensure the active tab button is highlighted
-        }
-
-        // Function to open the "Mark Returned" modal
-        function openMarkReturnedModal(entryId) {
-            const modal = document.getElementById('markReturnedModal');
-            const confirmBtn = document.getElementById('confirmReturnBtn');
-            const returnedQtyInput = document.getElementById('returnedQtyInput');
-
-            // Store the entry ID in the button's dataset
-            confirmBtn.dataset.entryId = entryId;
-            
-            // Pre-fill with the owed quantity for convenience
-            const entry = emptiesData.find(e => e.id === entryId);
-            if (entry) {
-                returnedQtyInput.value = entry.qtyOwed;
-            } else {
-                returnedQtyInput.value = '';
-            }
-            
-            modal.style.display = 'flex'; // Use flex to center
-        }
-
-        // Function to close the modal
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Function to process the return after quantity is entered in modal
-        function processReturn(id, actualReturnedQty) {
-            const entryIndex = emptiesData.findIndex(e => e.id === id);
-            if (entryIndex === -1) {
-                showAlert('Entry not found.', 'error');
-                return;
-            }
-            const entry = emptiesData[entryIndex];
-            
-            if (actualReturnedQty > entry.qtyOwed) {
-                // Scenario 1: Returned quantity is more than owed (surplus)
-                const surplus = actualReturnedQty - entry.qtyOwed;
-                handleSurplus(entry.customerName, surplus, entry.id); // Pass debt entry ID as reference
-                entry.qtyOwed = 0; // Debt fully cleared
-                entry.cleared = true;
-                entry.dateCleared = new Date().toISOString().split('T')[0];
-                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}. ${surplus} surplus added to advance.`, 'success');
-            } else if (actualReturnedQty < entry.qtyOwed) {
-                // Scenario 2: Returned quantity is less than owed (partial return)
-                entry.qtyOwed -= actualReturnedQty;
-                showAlert(`Partially returned ${actualReturnedQty} empties for ${entry.customerName}. Remaining owed: ${entry.qtyOwed}.`, 'success');
-            } else {
-                // Scenario 3: Returned quantity is exactly as owed
-                entry.cleared = true;
-                entry.dateCleared = new Date().toISOString().split('T')[0];
-                showAlert(`Marked ${entry.qtyOwed} empties as returned for ${entry.customerName}.`, 'success');
-            }
-
-            saveData();
-            refreshAllTablesAndStats();
-        }
-
-        // Function to handle surplus empties, adding to advance balance
-        function handleSurplus(customerName, surplus, referenceId = null) {
-            const existingAdvance = advanceEmpties.find(a => 
-                a.customerName === customerName && a.quantity > 0 && !a.dateUsed
-            );
-            
-            if (existingAdvance) {
-                existingAdvance.quantity += surplus;
-                existingAdvance.dateCreated = new Date().toISOString().split('T')[0]; // Update date to current for freshness
-                existingAdvance.referenceId = referenceId; // Link to the debt that generated the surplus
-            } else {
-                advanceEmpties.push({
-                    id: nextId++,
-                    customerName,
-                    quantity: surplus,
-                    dateCreated: new Date().toISOString().split('T')[0],
-                    dateUsed: null,
-                    referenceId: referenceId // Link to the debt that generated the surplus
-                });
-            }
-            saveData();
-        }
-
-        // Function to calculate a customer's total available advance balance
-        function calculateAdvanceBalance(customerName) {
-            return advanceEmpties
-                .filter(a => a.customerName === customerName && a.quantity > 0 && !a.dateUsed)
-                .reduce((sum, advance) => sum + advance.quantity, 0);
-        }
-
-        // Function to refresh the "Currently Owed" table
-        function refreshActiveTable() {
-            const activeEntries = emptiesData.filter(e => !e.cleared);
-            const tbody = document.querySelector('#active-table tbody');
-            const emptyState = document.getElementById('active-empty');
-            
-            if (activeEntries.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-            
-            tbody.innerHTML = activeEntries.map(entry => {
-                const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                const advanceBalance = calculateAdvanceBalance(entry.customerName);
-                const hasAdvanceClass = advanceBalance > 0 ? 'has-advance' : '';
-                const advanceSuffix = advanceBalance > 0 ? ` (Advance: ${advanceBalance})` : '';
-
-                return `
-                    <tr class="${hasAdvanceClass}">
-                        <td><strong>${entry.customerName}${advanceSuffix}</strong></td>
-                        <td><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
-                        <td>${formatDate(entry.dateOwed)}</td>
-                        <td><span style="color: ${daysPassed > 7 ? '#dc3545' : daysPassed > 3 ? '#ffc107' : '#28a745'}; font-weight: 600;">${daysPassed} days</span></td>
-                        <td><button class="btn btn-success" onclick="openMarkReturnedModal(${entry.id})">Mark Returned</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Function to refresh the "Advance Empties" table
-        function refreshAdvanceTable() {
-            const currentAdvances = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
-            const tbody = document.querySelector('#advance-table tbody');
-            const emptyState = document.getElementById('advance-empty');
-
-            if (currentAdvances.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-
-            tbody.innerHTML = currentAdvances.map(advance => {
-                const daysHeld = Math.floor((new Date() - new Date(advance.dateCreated)) / (1000 * 60 * 60 * 24));
-                return `
-                    <tr>
-                        <td><strong>${advance.customerName}</strong></td>
-                        <td><span style="background: #e8f5e8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${advance.quantity}</span></td>
-                        <td>${formatDate(advance.dateCreated)}</td>
-                        <td><span style="color: ${daysHeld > 30 ? '#dc3545' : daysHeld > 7 ? '#ffc107' : '#28a745'}; font-weight: 600;">${daysHeld} days</span></td>
-                        <td><!-- Action button for future use, e.g., manually adjust advance --></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Function to refresh the "Cleared History" table
-        function refreshHistoryTable() {
-            const clearedEntries = emptiesData.filter(e => e.cleared);
-            const tbody = document.querySelector('#history-table tbody');
-            const emptyState = document.getElementById('history-empty');
-            
-            if (clearedEntries.length === 0) {
-                tbody.innerHTML = '';
-                emptyState.style.display = 'block';
-                return;
-            }
-            
-            emptyState.style.display = 'none';
-            
-            tbody.innerHTML = clearedEntries.map(entry => {
-                const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                const advanceBalance = calculateAdvanceBalance(entry.customerName);
-                const hasAdvanceClass = advanceBalance > 0 ? 'has-advance' : '';
-                const advanceSuffix = advanceBalance > 0 ? ` (Advance: ${advanceBalance})` : '';
-
-                return `
-                    <tr class="${hasAdvanceClass}">
-                        <td><strong>${entry.customerName}${advanceSuffix}</strong></td>
-                        <td><span style="background: #e8f5e8; padding: 4px 8px; border-radius: 4px; font-weight: 600;">${entry.qtyOwed}</span></td>
-                        <td>${formatDate(entry.dateOwed)}</td>
-                        <td>${formatDate(entry.dateCleared)}</td>
-                        <td><span style="color: ${daysTaken > 7 ? '#dc3545' : '#28a745'}; font-weight: 600;">${daysTaken} days</span></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Function to update general statistics
-        function updateStats() {
-            const activeEntries = emptiesData.filter(e => !e.cleared);
-            const totalCustomers = new Set(activeEntries.map(e => e.customerName)).size;
-            const totalEmpties = activeEntries.reduce((sum, entry) => sum + entry.qtyOwed, 0);
-            
-            document.getElementById('total-customers').textContent = totalCustomers;
-            document.getElementById('total-empties').textContent = totalEmpties;
-        }
-
-        // Function to update advance statistics
-        function updateAdvanceStats() {
-            const currentAdvances = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
-            const totalAdvanceCustomers = new Set(currentAdvances.map(a => a.customerName)).size;
-            const totalAdvanceEmpties = currentAdvances.reduce((sum, advance) => sum + advance.quantity, 0);
-
-            // Calculate percentage of customers using advance
-            const allUniqueCustomers = new Set([
-                ...emptiesData.map(e => e.customerName),
-                ...advanceEmpties.map(a => a.customerName)
-            ]).size;
-            
-            const percentAdvanceUsers = allUniqueCustomers > 0 
-                ? ((totalAdvanceCustomers / allUniqueCustomers) * 100).toFixed(0) 
-                : 0;
-
-            document.getElementById('total-advance-customers').textContent = totalAdvanceCustomers;
-            document.getElementById('total-advance-empties').textContent = totalAdvanceEmpties;
-            document.getElementById('percent-advance-users').textContent = `${percentAdvanceUsers}%`;
-        }
-
-        // Function to filter tables based on search term
-        function filterTable(tableId, searchTerm) {
-            const table = document.getElementById(tableId);
-            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-            
-            for (let row of rows) {
-                const customerName = row.cells[0].textContent.toLowerCase();
-                const shouldShow = customerName.includes(searchTerm.toLowerCase());
-                row.style.display = shouldShow ? '' : 'none';
-            }
-        }
-
-        // Function to sort tables
-        function sortTable(tableId, columnIndex) {
-            const table = document.getElementById(tableId);
-            const tbody = table.getElementsByTagName('tbody')[0];
-            const rows = Array.from(tbody.getElementsByTagName('tr'));
-            
-            // Determine sorting direction (ascending/descending)
-            const currentDirection = table.dataset.sortDirection || 'asc';
-            const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-            table.dataset.sortDirection = newDirection; // Store for next sort
-
-            rows.sort((a, b) => {
-                const aText = a.cells[columnIndex].textContent.trim();
-                const bText = b.cells[columnIndex].textContent.trim();
-                
-                let comparison = 0;
-                // Try to parse as numbers for numeric columns (Qty, Days Overdue/Held/Taken)
-                if (columnIndex === 1 || columnIndex === 3 || columnIndex === 4) { // Qty, Days Overdue/Held, Days Taken
-                    const aNum = parseInt(aText.replace(/[^0-9.]/g, '')); // Extract number
-                    const bNum = parseInt(bText.replace(/[^0-9.]/g, ''));
-                    comparison = aNum - bNum;
-                } else if (columnIndex === 2 || columnIndex === 3) { // Date Owed, Date Cleared, Date Credited
-                    const aDate = new Date(aText);
-                    const bDate = new Date(bText);
-                    comparison = aDate - bDate;
-                } else {
-                    comparison = aText.localeCompare(bText);
-                }
-
-                return newDirection === 'asc' ? comparison : -comparison;
-            });
-            
-            // Clear and re-append sorted rows
-            tbody.innerHTML = '';
-            rows.forEach(row => tbody.appendChild(row));
-        }
-
-        // Function to export data to CSV
-        function exportToCSV(type) {
-            let data = [];
-            let headers = [];
-            let filename = `empties-${type}-${new Date().toISOString().split('T')[0]}.csv`;
-
-            if (type === 'active') {
-                data = emptiesData.filter(e => !e.cleared);
-                headers = ['Customer', 'Qty', 'Date Owed', 'Days Overdue', 'Advance Balance'];
-                const csvRows = data.map(entry => {
-                    const daysPassed = Math.floor((new Date() - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                    const advanceBalance = calculateAdvanceBalance(entry.customerName);
-                    return [entry.customerName, entry.qtyOwed, entry.dateOwed, daysPassed, advanceBalance].map(val => `"${val}"`).join(',');
-                });
-                data = csvRows; // Now data holds formatted CSV rows
-            } else if (type === 'history') {
-                data = emptiesData.filter(e => e.cleared);
-                headers = ['Customer', 'Qty', 'Date Owed', 'Date Cleared', 'Days Taken', 'Advance Balance'];
-                const csvRows = data.map(entry => {
-                    const daysTaken = Math.floor((new Date(entry.dateCleared) - new Date(entry.dateOwed)) / (1000 * 60 * 60 * 24));
-                    const advanceBalance = calculateAdvanceBalance(entry.customerName);
-                    return [entry.customerName, entry.qtyOwed, entry.dateOwed, entry.dateCleared, daysTaken, advanceBalance].map(val => `"${val}"`).join(',');
-                });
-                data = csvRows;
-            } else if (type === 'advance') {
-                data = advanceEmpties.filter(a => a.quantity > 0 && !a.dateUsed);
-                headers = ['Customer', 'Advance Qty', 'Date Credited', 'Days Held', 'Date Last Used', 'Reference ID'];
-                const csvRows = data.map(entry => {
-                    const daysHeld = Math.floor((new Date() - new Date(entry.dateCreated)) / (1000 * 60 * 60 * 24));
-                    return [entry.customerName, entry.quantity, entry.dateCreated, daysHeld, entry.dateUsed || 'N/A', entry.referenceId || 'N/A'].map(val => `"${val}"`).join(',');
-                });
-                data = csvRows;
-            } else {
-                showAlert('Invalid export type.', 'error');
-                return;
-            }
-            
-            if (data.length === 0) {
-                showAlert('No data to export for this category.', 'error');
-                return;
-            }
-            
-            const csvContent = [
-                headers.join(','),
-                ...data
-            ].join('\n');
-            
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            window.URL.revokeObjectURL(url);
-            
-            showAlert(`Exported ${data.length} records to ${filename}`, 'success');
-        }
-
-        // Function to show alert messages
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
-            alert.textContent = message;
-            alert.className = `alert ${type} show`;
-            
-            setTimeout(() => {
-                alert.classList.remove('show');
-            }, 3000);
-        }
-
-        // Utility function to format date strings
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            return new Date(dateString).toLocaleDateString('en-GB');
-        }
-
-        // Function to save all data to localStorage
-        function saveData() {
-            localStorage.setItem('emptiesData', JSON.stringify(emptiesData));
-            localStorage.setItem('advanceEmpties', JSON.stringify(advanceEmpties));
-            localStorage.setItem('nextId', nextId.toString());
+        function showNotification(message, type = 'success') {
+            app.showNotification(message, type);
         }
     </script>
 </body>
